@@ -63,7 +63,6 @@ done
 
 prerequisities_verify ()
 {
-    # is directory - with tesseract models
     type pdfinfo
     type grep
     type tr
