@@ -10,8 +10,8 @@ DEFAULT_MODE=pdftotext
 
 ARG_PAGE_FROM=-1
 ARG_PAGE_TO=-1
-ARG_RESOLUTION=300
-ARG_LANGUAGE=eng
+ARG_RESOLUTION=-1
+ARG_LANGUAGE=""
 ARG_FILENAME=""
 ARG_MODE=""
 
@@ -70,7 +70,7 @@ prerequisities_verify ()
     if [[ $ARG_MODE = "tesseract" ]];then
         type convert
         type tesseract
-        echo "Is the requested languages supported in your tesseract installation? " $(env TESSDATA_PREFIX=$HOME/src/tessdata tesseract --list-langs | grep -ws $ARG_LANGUAGE)
+        echo "Searching for requested language in your tesseract installation..." $(env TESSDATA_PREFIX=$HOME/src/tessdata tesseract --list-langs | grep -ws $ARG_LANGUAGE)
     fi
 }
 
@@ -103,22 +103,22 @@ input_validate ()
     else
         CONFIG_PAGE_FROM=$FILE_FIRST_PAGE
     fi
-    if [[ ARG_PAGE_TO =~ ^[0-9]+$ ]];then
+    if [[ $ARG_PAGE_TO =~ ^[0-9]+$ ]];then
         CONFIG_PAGE_TO=$ARG_PAGE_TO
     else
         CONFIG_PAGE_TO=$FILE_LAST_PAGE
     fi
-    if [[ "$ARG_RESOLUTION" =~ ^[0-9]+$ ]];then
+    if [[ $ARG_RESOLUTION =~ ^[0-9]+$ ]];then
         CONFIG_RESOLUTION=$ARG_RESOLUTION
     else
         CONFIG_RESOLUTION=$DEFAULT_RESOLUTION
     fi
-    if [[ "$ARG_LANGUAGE" =~ ^[a-zA-Z]{3}$ ]];then
+    if [[ $ARG_LANGUAGE =~ ^[a-zA-Z]{3}$ ]];then
         CONFIG_LANGUAGE=$(echo "$ARG_LANGUAGE" | tr '[:upper:]' '[:lower:]')
     else
         CONFIG_LANGUAGE=$DEFAULT_LANGUAGE
     fi
-    if [[ "$ARG_MODE" =~ ^(tesseract|pdftotext)$ ]];then
+    if [[ $ARG_MODE =~ ^(tesseract|pdftotext)$ ]];then
         CONFIG_MODE=$ARG_MODE
     else
         CONFIG_MODE=$DEFAULT_MODE
@@ -133,6 +133,7 @@ pdf_find_pages ()
 
 extract_tesseract ()
 {
+    echo "OCR-ing pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
     #    convert -density $RESOLUTION -white-threshold 80% $SOURCE\[$(($i - 1 ))\] $SOURCE$i.tiff
         index_padded=$(printf %04d $i)
@@ -148,6 +149,7 @@ extract_tesseract ()
 
 extract_pdftotext ()
 {
+    echo "Extracting text from pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
     #    convert -density $RESOLUTION -white-threshold 80% $SOURCE\[$(($i - 1 ))\] $SOURCE$i.tiff
         index_padded=$(printf %04d $i)
