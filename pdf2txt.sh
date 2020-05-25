@@ -70,7 +70,7 @@ prerequisities_verify ()
     if [[ $ARG_MODE = "tesseract" ]];then
         type convert
         type tesseract
-        echo "Searching for requested language in your tesseract installation..." $(env TESSDATA_PREFIX=$HOME/src/tessdata tesseract --list-langs | grep -ws $ARG_LANGUAGE)
+        echo "Searching for requested language in your tesseract installation..." $(env TESSDATA_PREFIX=$PATH_TESSDATA tesseract --list-langs | grep -ws $ARG_LANGUAGE)
     fi
 }
 
@@ -96,7 +96,7 @@ input_validate ()
     else
         echo "Input file doesn't exist."
         usage
-        exit 0
+        exit 1
     fi
     if [[ $ARG_PAGE_FROM =~ ^[0-9]+$ ]];then
         CONFIG_PAGE_FROM=$ARG_PAGE_FROM
@@ -135,30 +135,29 @@ extract_tesseract ()
 {
     echo "OCR-ing pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
-    #    convert -density $RESOLUTION -white-threshold 80% $SOURCE\[$(($i - 1 ))\] $SOURCE$i.tiff
         index_padded=$(printf %04d $i)
         filename_page=$CONFIG_FILENAME_PREFIX-$index_padded
+#        convert -alpha remove -density $CONFIG_RESOLUTION -white-threshold 80% $CONFIG_FILENAME\[$(($i - 1 ))\] $filename_page.tiff
         convert -alpha remove -density $CONFIG_RESOLUTION $CONFIG_FILENAME\[$(($i - 1 ))\] $filename_page.tiff
         convert -monochrome $filename_page.tiff $filename_page.tiff
         echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
         env TESSDATA_PREFIX=$PATH_TESSDATA tesseract -l $CONFIG_LANGUAGE $filename_page.tiff $filename_page
     done
     echo ""
-    exit 1
+    exit 0
 }
 
 extract_pdftotext ()
 {
     echo "Extracting text from pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
-    #    convert -density $RESOLUTION -white-threshold 80% $SOURCE\[$(($i - 1 ))\] $SOURCE$i.tiff
         index_padded=$(printf %04d $i)
         echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
 #        pdftotext -layout -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
         pdftotext -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
     done
     echo ""
-    exit 1
+    exit 0
 }
 
 extract_text ()
