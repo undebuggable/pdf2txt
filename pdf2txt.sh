@@ -98,27 +98,27 @@ input_validate ()
         usage
         exit 1
     fi
-    if [[ $ARG_PAGE_FROM =~ ^[0-9]+$ ]];then
+    if [[ "$ARG_PAGE_FROM" =~ ^[0-9]+$ ]];then
         CONFIG_PAGE_FROM=$ARG_PAGE_FROM
     else
         CONFIG_PAGE_FROM=$FILE_FIRST_PAGE
     fi
-    if [[ $ARG_PAGE_TO =~ ^[0-9]+$ ]];then
+    if [[ "$ARG_PAGE_TO" =~ ^[0-9]+$ ]];then
         CONFIG_PAGE_TO=$ARG_PAGE_TO
     else
         CONFIG_PAGE_TO=$FILE_LAST_PAGE
     fi
-    if [[ $ARG_RESOLUTION =~ ^[0-9]+$ ]];then
+    if [[ "$ARG_RESOLUTION" =~ ^[0-9]+$ ]];then
         CONFIG_RESOLUTION=$ARG_RESOLUTION
     else
         CONFIG_RESOLUTION=$DEFAULT_RESOLUTION
     fi
-    if [[ $ARG_LANGUAGE =~ ^[a-zA-Z]{3}$ ]];then
+    if [[ "$ARG_LANGUAGE" =~ ^[a-zA-Z]{3}$ ]];then
         CONFIG_LANGUAGE=$(echo "$ARG_LANGUAGE" | tr '[:upper:]' '[:lower:]')
     else
         CONFIG_LANGUAGE=$DEFAULT_LANGUAGE
     fi
-    if [[ $ARG_MODE =~ ^(tesseract|pdftotext)$ ]];then
+    if [[ "$ARG_MODE" =~ ^(tesseract|pdftotext)$ ]];then
         CONFIG_MODE=$ARG_MODE
     else
         CONFIG_MODE=$DEFAULT_MODE
