@@ -67,7 +67,7 @@ requirements ()
     type grep
     type tr
     type cut
-    if [[ $ARG_MODE = "tesseract" ]];then
+    if [[ "$ARG_MODE" = "tesseract" ]];then
         type convert
         type tesseract
     fi
@@ -89,6 +89,7 @@ input_validate ()
 {
     if [[ -e "$ARG_FILENAME" ]];then
         CONFIG_FILENAME=$ARG_FILENAME
+        echo "[✔] Input file exists "$CONFIG_FILENAME
         filename_extension="${CONFIG_FILENAME##*.}"
         CONFIG_FILENAME_PREFIX=$(echo "$CONFIG_FILENAME" | sed -e "s/.$filename_extension\$//g")
         pdf_find_pages
@@ -140,7 +141,7 @@ input_validate ()
 pdf_find_pages ()
 {
     FILE_FIRST_PAGE=1
-    FILE_LAST_PAGE=$(pdfinfo "$ARG_FILENAME" | grep -i pAgEs: | tr -d " " | cut -d ":" -f2-)
+    FILE_LAST_PAGE=$(pdfinfo $CONFIG_FILENAME | grep -i pAgEs: | tr -d " " | cut -d ":" -f2-)
 }
 
 extract_tesseract ()
