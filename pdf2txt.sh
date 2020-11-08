@@ -61,7 +61,7 @@ case $key in
 esac
 done
 
-prerequisities_verify ()
+requirements ()
 {
     type pdfinfo
     type grep
@@ -70,19 +70,18 @@ prerequisities_verify ()
     if [[ $ARG_MODE = "tesseract" ]];then
         type convert
         type tesseract
-        echo "Searching for requested language in your tesseract installation..." $(env TESSDATA_PREFIX=$PATH_TESSDATA tesseract --list-langs | grep -ws $ARG_LANGUAGE)
     fi
 }
 
 usage ()
 {
     echo 'Usage: pdf2txt -f|--from [START_PAGE] -t|--to [END_PAGE] -r|--resolution [RESOLUTION] -l|--language [LANGUAGE] -m|--mode [EXTRACTION_MODE] [SOURCE_FILENAME]'
-    echo '[START_PAGE] the page number of the first page of PDF you wish to convert'
-    echo '[END_PAGE] the page number of the last page of PDF you wish to convert'
-    echo '[RESOLUTION] the resolution the scanner used (the higher, the better)'
+    echo '[START_PAGE] the page number of the first page of PDF file'
+    echo '[END_PAGE] the page number of the last page of the PDF file'
+    echo '[RESOLUTION] the resolution the scanner used'
     echo '[LANGUAGE] 3-letter language code'
-    echo '[EXTRACTION_MODE] "tesseract" (Tesseract) or "pdftotext" (simply grab the text from previously OCR-ed PDF)'
-    echo '[SOURCE_FILE] file name of the PDF'
+    echo '[EXTRACTION_MODE] "tesseract" or "pdftotext"'
+    echo '[SOURCE_FILE] file name of the PDF file'
 }
 
 
@@ -94,7 +93,7 @@ input_validate ()
         CONFIG_FILENAME_PREFIX=$(echo "$CONFIG_FILENAME" | sed -e "s/.$filename_extension\$//g")
         pdf_find_pages
     else
-        echo "Input file doesn't exist."
+        echo "[✗] Input file doesn't exist."
         usage
         exit 1
     fi
@@ -113,15 +112,28 @@ input_validate ()
     else
         CONFIG_RESOLUTION=$DEFAULT_RESOLUTION
     fi
-    if [[ "$ARG_LANGUAGE" =~ ^[a-zA-Z]{3}$ ]];then
-        CONFIG_LANGUAGE=$(echo "$ARG_LANGUAGE" | tr '[:upper:]' '[:lower:]')
-    else
-        CONFIG_LANGUAGE=$DEFAULT_LANGUAGE
-    fi
     if [[ "$ARG_MODE" =~ ^(tesseract|pdftotext)$ ]];then
         CONFIG_MODE=$ARG_MODE
     else
         CONFIG_MODE=$DEFAULT_MODE
+    fi
+    if [[ $CONFIG_MODE = "tesseract" ]];then
+        CONFIG_LANGUAGE=$(echo "$ARG_LANGUAGE" | tr '[:upper:]' '[:lower:]')
+        lang_supported=$( \
+            env TESSDATA_PREFIX=$PATH_TESSDATA tesseract --list-langs | \
+            grep -ws $CONFIG_LANGUAGE \
+        )
+        if [[ $lang_supported = "" ]];then
+            echo \
+                "[✗] The language "\
+                $ARG_LANGUAGE\
+                " is not supported by Tesseract installation, falling back to "\
+                $DEFAULT_LANGUAGE
+            CONFIG_LANGUAGE=$DEFAULT_LANGUAGE
+        fi
+        if [[ $lang_supported = $CONFIG_LANGUAGE ]]; then
+            echo "[✔] The language "$CONFIG_LANGUAGE" is supported by Tesseract installation"
+        fi
     fi
 }
 
@@ -133,7 +145,7 @@ pdf_find_pages ()
 
 extract_tesseract ()
 {
-    echo "OCR-ing pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
+    echo "[→] OCR-ing pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
         index_padded=$(printf %04d $i)
         filename_page=$CONFIG_FILENAME_PREFIX-$index_padded
@@ -143,20 +155,18 @@ extract_tesseract ()
         echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
         env TESSDATA_PREFIX=$PATH_TESSDATA tesseract -l $CONFIG_LANGUAGE $filename_page.tiff $filename_page
     done
-    echo ""
     exit 0
 }
 
 extract_pdftotext ()
 {
-    echo "Extracting text from pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
+    echo "[→] Extracting text from pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
     for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
         index_padded=$(printf %04d $i)
         echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
 #        pdftotext -layout -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
         pdftotext -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
     done
-    echo ""
     exit 0
 }
 
@@ -170,6 +180,12 @@ extract_text ()
     fi
 }
 
-prerequisities_verify
-input_validate
-extract_text
+
+function run ()
+{
+    requirements
+    input_validate
+    extract_text
+}
+
+run
