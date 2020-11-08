@@ -14,12 +14,12 @@ https://github.com/tesseract-ocr/tessdata_fast
 Running the utility
 --------------
 
-Extract text from all pages of the PDF file `aaa.pdf` with `pdftotext`:
+Extract text with `pdftotext`, from all pages of the PDF file `aaa.pdf`:
 ```bash
 pdf2txt.sh aaa.pdf
 ```
 
-Extract text by using Tesseract OCR. Use pages 5-14 of the PDF file `aaa.pdf` which contents are in English:
+Extract text with Tesseract OCR, from pages 5-14 of the PDF file `aaa.pdf` which contents are in English:
 ```bash
 pdf2txt.sh -f 5 -t 14 -l eng -m tesseract aaa.pdf
 ``` 

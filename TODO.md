@@ -1,1 +1,1 @@
-* [TODO] verifying prerequisities - does directory with tesseract models exist?
+* [TODO] requirements - does directory with tesseract models exist?
