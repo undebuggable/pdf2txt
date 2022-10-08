@@ -2,3 +2,5 @@ https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments
 https://stackoverflow.com/questions/2740906/how-to-access-command-line-arguments-of-the-caller-inside-a-function
 https://stackoverflow.com/questions/10934456/imagemagick-pdf-to-jpgs-sometimes-results-in-black-background
 https://stackoverflow.com/questions/2388090/how-to-delete-and-replace-last-line-in-the-terminal-using-bash
+https://legacy.imagemagick.org/Usage/quantize/#threshold
+https://legacy.imagemagick.org/Usage/quantize/#two_color
