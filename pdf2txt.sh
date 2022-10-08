@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PATH_TESSDATA=$HOME/src/tessdata
+PATH_TESSDATA="${HOME}/src/tessdata"
 
 DEFAULT_PAGE_FROM=1
 DEFAULT_PAGE_TO=1
@@ -67,7 +67,7 @@ requirements ()
     type grep
     type tr
     type cut
-    if [[ "$ARG_MODE" = "tesseract" ]];then
+    if [[ "$ARG_MODE" = 'tesseract' ]];then
         type convert
         type tesseract
     fi
@@ -89,7 +89,7 @@ input_validate ()
 {
     if [[ -e "$ARG_FILENAME" ]];then
         CONFIG_FILENAME=$ARG_FILENAME
-        echo "[✔] Input file exists "$CONFIG_FILENAME
+        echo "[✔] Input file exists ${CONFIG_FILENAME}"
         filename_extension="${CONFIG_FILENAME##*.}"
         CONFIG_FILENAME_PREFIX=$(echo "$CONFIG_FILENAME" | sed -e "s/.$filename_extension\$//g")
         pdf_find_pages
@@ -118,7 +118,7 @@ input_validate ()
     else
         CONFIG_MODE=$DEFAULT_MODE
     fi
-    if [[ $CONFIG_MODE = "tesseract" ]];then
+    if [[ $CONFIG_MODE = 'tesseract' ]];then
         CONFIG_LANGUAGE=$(echo "$ARG_LANGUAGE" | tr '[:upper:]' '[:lower:]')
         lang_supported=$( \
             env TESSDATA_PREFIX=$PATH_TESSDATA tesseract --list-langs | \
@@ -126,14 +126,11 @@ input_validate ()
         )
         if [[ $lang_supported = "" ]];then
             echo \
-                "[✗] The language "\
-                $ARG_LANGUAGE\
-                " is not supported by Tesseract installation, falling back to "\
-                $DEFAULT_LANGUAGE
+                "[✗] The language ${ARG_LANGUAGE} is not supported by Tesseract installation, falling back to ${DEFAULT_LANGUAGE}"
             CONFIG_LANGUAGE=$DEFAULT_LANGUAGE
         fi
         if [[ $lang_supported = $CONFIG_LANGUAGE ]]; then
-            echo "[✔] The language "$CONFIG_LANGUAGE" is supported by Tesseract installation"
+            echo "[✔] The language ${CONFIG_LANGUAGE} is supported by Tesseract installation"
         fi
     fi
 }
@@ -141,19 +138,19 @@ input_validate ()
 pdf_find_pages ()
 {
     FILE_FIRST_PAGE=1
-    FILE_LAST_PAGE=$(pdfinfo $CONFIG_FILENAME | grep -i pAgEs: | tr -d " " | cut -d ":" -f2-)
+    FILE_LAST_PAGE=$(pdfinfo $CONFIG_FILENAME | grep --text -i 'pAgEs:' | tr -d ' ' | cut -d ':' -f2-)
 }
 
 extract_tesseract ()
 {
-    echo "[→] OCR-ing pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
-    for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
+    echo "[→] OCR-ing pages ${CONFIG_PAGE_FROM} to ${CONFIG_PAGE_TO}"
+    for i in $(seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO); do
         index_padded=$(printf %04d $i)
         filename_page=$CONFIG_FILENAME_PREFIX-$index_padded
 #        convert -alpha remove -density $CONFIG_RESOLUTION -white-threshold 80% $CONFIG_FILENAME\[$(($i - 1 ))\] $filename_page.tiff
         convert -alpha remove -density $CONFIG_RESOLUTION $CONFIG_FILENAME\[$(($i - 1 ))\] $filename_page.tiff
         convert -monochrome $filename_page.tiff $filename_page.tiff
-        echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
+        echo -en "\rProcessing page ${index_padded}/${CONFIG_PAGE_TO} from the file ${CONFIG_FILENAME}"
         env TESSDATA_PREFIX=$PATH_TESSDATA tesseract -l $CONFIG_LANGUAGE $filename_page.tiff $filename_page
     done
     exit 0
@@ -161,10 +158,10 @@ extract_tesseract ()
 
 extract_pdftotext ()
 {
-    echo "[→] Extracting text from pages "$CONFIG_PAGE_FROM" to "$CONFIG_PAGE_TO
-    for i in `seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO`; do
+    echo "[→] Extracting text from pages ${CONFIG_PAGE_FROM} to ${CONFIG_PAGE_TO}"
+    for i in $(seq $CONFIG_PAGE_FROM $CONFIG_PAGE_TO); do
         index_padded=$(printf %04d $i)
-        echo -en "\rProcessing page $index_padded/$CONFIG_PAGE_TO from the file $CONFIG_FILENAME"
+        echo -en "\rProcessing page ${index_padded}/${CONFIG_PAGE_TO} from the file ${CONFIG_FILENAME}"
 #        pdftotext -layout -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
         pdftotext -f $i -l $i -r $CONFIG_RESOLUTION $CONFIG_FILENAME $CONFIG_FILENAME_PREFIX-$index_padded.txt
     done
@@ -173,10 +170,10 @@ extract_pdftotext ()
 
 extract_text ()
 {
-    if [[ $CONFIG_MODE = "tesseract" ]];then
+    if [[ $CONFIG_MODE = 'tesseract' ]];then
         extract_tesseract
     fi
-    if [[ $CONFIG_MODE = "pdftotext" ]];then
+    if [[ $CONFIG_MODE = 'pdftotext' ]];then
         extract_pdftotext
     fi
 }
